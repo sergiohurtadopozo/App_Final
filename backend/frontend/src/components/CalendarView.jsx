@@ -5,7 +5,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 
-import './CalendarView.css';
+import './Styles/CalendarView.css';
 
 function CalendarView() {
   const [events, setEvents] = useState([]);
