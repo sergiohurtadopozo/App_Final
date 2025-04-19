@@ -182,6 +182,17 @@ app.get('/profile', authenticateToken, async (req, res) => {
   }
 });
 
+const path = require('path');
+
+// 1) Sirve los archivos estáticos del build de React:
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+// 2) Para cualquier ruta que no sea API, devuelve index.html:
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+});
+
+
 
 /* ----------- Sincronización de la Base de Datos y Arranque del Servidor ----------- */
 

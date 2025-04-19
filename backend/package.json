@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "db:migrate": "NODE_ENV=development sequelize-cli db:migrate",
+    "db:migrate:prod": "NODE_ENV=production sequelize-cli db:migrate"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +19,10 @@
     "sequelize": "^6.37.7",
     "sqlite3": "^5.1.7"
   },
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "sequelize-cli": "^6.6.2"
+  }
 }
+
+
