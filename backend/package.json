@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node app.js",
     "db:migrate": "NODE_ENV=development sequelize-cli db:migrate",
-    "db:migrate:prod": "NODE_ENV=production sequelize-cli db:migrate"
+    "db:migrate:prod": "NODE_ENV=production sequelize-cli db:migrate",
+    "postinstall": "npm install --prefix ../frontend && npm run build --prefix ../frontend"
   },
   "keywords": [],
   "author": "",
