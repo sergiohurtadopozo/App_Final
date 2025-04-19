@@ -1,0 +1,62 @@
+/* src/App.css */
+
+/* Variables para una paleta de colores moderna */
+:root {
+  --primary-color: #007BFF;
+  --primary-hover: #0056b3;
+  --background-color: #f8f9fa;
+  --text-color: #333;
+  --link-color: #007BFF;
+  --link-hover: #0056b3;
+}
+
+/* src/App.css */
+.app-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  font-family: 'Roboto', sans-serif;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.navbar a {
+  padding: 0.5rem 0.75rem;
+  text-decoration: none;
+  color: var(--link-color);
+  font-size: 1rem;
+}
+
+.navbar a:hover {
+  color: var(--link-hover);
+}
+
+/* Media query para pantallas pequeñas */
+@media (max-width: 600px) {
+  .app-title {
+    font-size: 1.5rem;
+  }
+  .navbar a {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+

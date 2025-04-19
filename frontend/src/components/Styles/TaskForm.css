@@ -1,0 +1,55 @@
+/* src/components/Styles/TaskForm.css */
+.task-form-container {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.task-form-container h2 {
+  font-size: 1.8em;
+  color: #444;
+  margin-bottom: 10px;
+}
+
+.task-form-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-form-container input {
+  padding: 8px;
+  margin: 5px 0;
+  font-size: 1em;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.task-form-container button {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  font-size: 1em;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.task-form-container button:hover {
+  background-color: #218838;
+}
+
+/* Media query: agrupa labels en columna si necesitas */
+@media (max-width: 600px) {
+  .calendar-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .calendar-controls label {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}

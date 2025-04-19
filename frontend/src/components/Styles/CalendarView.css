@@ -1,0 +1,35 @@
+/* src/components/CalendarView.css */
+.calendar-container {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.calendar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.calendar-controls label {
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.calendar-controls select {
+  margin-left: 0.5rem;
+  padding: 0.3rem;
+}
+
+/* Media query para móviles */
+@media (max-width: 600px) {
+  .calendar-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .calendar-controls label {
+    justify-content: space-between;
+  }
+}
