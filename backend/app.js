@@ -183,13 +183,14 @@ app.get('/profile', authenticateToken, async (req, res) => {
 
 /* ----------- Static & SPA fallback ----------- */
 
-// Sirve los estáticos desde backend/frontend/build
+// Sirve estáticos
 app.use(express.static(path.join(__dirname, 'frontend', 'build')));
 
-// Solo para rutas no API, devolvemos index.html de ese mismo build
-app.get('*', (req, res) => {
+// Catch‑all con regex, no pasa por path‑to‑regexp para parámetros
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
 });
+
 
 
 /* ----------- Arranque del Servidor ----------- */
