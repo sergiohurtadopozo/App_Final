@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
-    "postinstall": "npm rebuild sqlite3 --build-from-source && sequelize-cli db:migrate"
+    "postinstall": "npm rebuild sqlite3 --build-from-source && npm exec sequelize-cli db:migrate"
   },
   "keywords": [],
   "author": "",
