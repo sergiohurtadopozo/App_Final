@@ -7,10 +7,18 @@ const { sequelize, Task, User } = require('./models');
 
 const app = express();
 
-// 1) Middlewares globales
-app.use(cors({
-  origin: process.env.CORS_ORIGIN
-}));
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN,
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+};
+
+// CORS para rutas normales
+app.use(cors(corsOptions));
+
+// CORS sólo para preflight (OPTIONS)
+app.options('*', cors(corsOptions));
+
 
 
 // 2) Middleware de autenticación
