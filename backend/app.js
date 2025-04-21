@@ -1,15 +1,16 @@
 require('dotenv').config();
-const express = require('express');
-const bcrypt  = require('bcryptjs');
-const jwt     = require('jsonwebtoken');
+const express   = require('express');
+const bcrypt    = require('bcryptjs');
+const jwt       = require('jsonwebtoken');
+const path      = require('path');
 const { sequelize, Task, User } = require('./models');
 
 const app = express();
 
-// 1) Parsear JSON
+// 1) JSON body parser
 app.use(express.json());
 
-// 2) Middleware de autenticación
+// 2) Authentication middleware
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token      = authHeader && authHeader.split(' ')[1];
@@ -21,9 +22,7 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// 3) Endpoints de tareas
-
-// Obtener tareas (admin ve todas; usuario solo las suyas)
+// 3) Tasks endpoints
 app.get('/tasks', authenticateToken, async (req, res) => {
   try {
     const where = req.user.role === 'admin'
@@ -42,7 +41,6 @@ app.get('/tasks', authenticateToken, async (req, res) => {
   }
 });
 
-// Crear tarea
 app.post('/tasks', authenticateToken, async (req, res) => {
   try {
     const { title, description, status, dueDate } = req.body;
@@ -59,7 +57,6 @@ app.post('/tasks', authenticateToken, async (req, res) => {
   }
 });
 
-// Actualizar tarea
 app.put('/tasks/:id', authenticateToken, async (req, res) => {
   try {
     const { title, description, status, dueDate } = req.body;
@@ -81,7 +78,6 @@ app.put('/tasks/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Eliminar tarea
 app.delete('/tasks/:id', authenticateToken, async (req, res) => {
   try {
     const filter = req.user.role === 'admin'
@@ -97,9 +93,7 @@ app.delete('/tasks/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// 4) Endpoints de usuario
-
-// Registrar usuario
+// 4) User endpoints
 app.post('/register', async (req, res) => {
   try {
     const { username, email, password, secretCode } = req.body;
@@ -107,7 +101,7 @@ app.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'El usuario ya existe.' });
     }
     const hashed = await bcrypt.hash(password, 10);
-    const role   = (secretCode?.trim().toUpperCase() === 'ADMIN1234')
+    const role   = secretCode?.trim().toUpperCase() === 'ADMIN1234'
       ? 'admin'
       : 'user';
     const user = await User.create({ username, email, password: hashed, role });
@@ -117,7 +111,6 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// Login usuario
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -137,7 +130,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Obtener perfil
 app.get('/profile', authenticateToken, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
@@ -149,14 +141,24 @@ app.get('/profile', authenticateToken, async (req, res) => {
   }
 });
 
-// 5) Arranque del servidor
+// 5) Serve React build
+
+// Ajusta la ruta si prefieres copiar `build/` dentro de `backend/`
+const buildPath = path.join(__dirname, 'build');
+app.use(express.static(buildPath));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(buildPath, 'index.html'));
+});
+
+// 6) Sync DB & start server
 const PORT = process.env.PORT || 3000;
-sequelize.authenticate()
+sequelize
+  .sync()
   .then(() => {
-    console.log('Conexión establecida.');
-    app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
+    console.log('Base de datos sincronizada.');
+    app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
   })
   .catch(err => {
-    console.error('No se pudo conectar a la BD:', err);
+    console.error('No se pudo sincronizar la BD:', err);
     process.exit(1);
   });
