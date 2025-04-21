@@ -8,8 +8,10 @@ const { sequelize, Task, User } = require('./models');
 const app = express();
 
 // 1) Middlewares globales
-app.use(express.json());
-app.use(cors({ origin: process.env.CORS_ORIGIN }));
+app.use(cors({
+  origin: process.env.CORS_ORIGIN
+}));
+
 
 // 2) Middleware de autenticación
 function authenticateToken(req, res, next) {
