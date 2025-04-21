@@ -1,32 +1,29 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const cors    = require('cors');
+const bcrypt  = require('bcryptjs');
+const jwt     = require('jsonwebtoken');
 const { sequelize, Task, User } = require('./models');
 
 const app = express();
 
+// 1) Parsear JSON
+app.use(express.json());
+
+// 2) Configuración CORS
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN,
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  origin:         process.env.CORS_ORIGIN,
+  methods:        ['GET','POST','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
 };
-
-// CORS para rutas normales
 app.use(cors(corsOptions));
-
-// CORS sólo para preflight (OPTIONS)
 app.options('*', cors(corsOptions));
 
-
-
-// 2) Middleware de autenticación
+// 3) Middleware de autenticación
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token      = authHeader && authHeader.split(' ')[1];
   if (!token) return res.sendStatus(401);
-
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
     if (err) return res.sendStatus(403);
     req.user = user;
@@ -34,7 +31,9 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// 3) Rutas de tareas
+// 4) Rutas de gestión de tareas
+
+// Obtener tareas (admin ve todas; usuario solo las suyas)
 app.get('/tasks', authenticateToken, async (req, res) => {
   try {
     const where = req.user.role === 'admin'
@@ -53,12 +52,15 @@ app.get('/tasks', authenticateToken, async (req, res) => {
   }
 });
 
+// Crear tarea
 app.post('/tasks', authenticateToken, async (req, res) => {
   try {
     const { title, description, status, dueDate } = req.body;
     const task = await Task.create({
-      title, description,
-      status, userId: req.user.id,
+      title,
+      description,
+      status,
+      userId: req.user.id,
       dueDate
     });
     res.json(task);
@@ -67,6 +69,7 @@ app.post('/tasks', authenticateToken, async (req, res) => {
   }
 });
 
+// Actualizar tarea
 app.put('/tasks/:id', authenticateToken, async (req, res) => {
   try {
     const { title, description, status, dueDate } = req.body;
@@ -78,7 +81,9 @@ app.put('/tasks/:id', authenticateToken, async (req, res) => {
     if (!task) return res.status(404).json({ error: 'Tarea no encontrada.' });
 
     await task.update({
-      title, description, status,
+      title,
+      description,
+      status,
       dueDate: dueDate !== undefined ? dueDate : task.dueDate
     });
     res.json(task);
@@ -87,6 +92,7 @@ app.put('/tasks/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Eliminar tarea
 app.delete('/tasks/:id', authenticateToken, async (req, res) => {
   try {
     const id = req.params.id;
@@ -103,7 +109,9 @@ app.delete('/tasks/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// 4) Rutas de usuario
+// 5) Rutas de usuario
+
+// Registrar usuario
 app.post('/register', async (req, res) => {
   try {
     const { username, email, password, secretCode } = req.body;
@@ -121,6 +129,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
+// Login usuario
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -140,6 +149,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// Perfil usuario
 app.get('/profile', authenticateToken, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
@@ -151,7 +161,7 @@ app.get('/profile', authenticateToken, async (req, res) => {
   }
 });
 
-// 5) Arranque del servidor
+// 6) Arranque del servidor
 const PORT = process.env.PORT || 3000;
 sequelize.authenticate()
   .then(() => {
