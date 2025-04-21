@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 const { sequelize, Task, User } = require('./models');
 
 const app = express();
@@ -116,7 +117,6 @@ app.delete('/tasks/:id', authenticateToken, async (req, res) => {
 
 app.post('/register', async (req, res) => {
   const { username, email, password, secretCode } = req.body;
-  console.log("Código secreto recibido:", secretCode);
   try {
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
@@ -124,9 +124,7 @@ app.post('/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const role = secretCode && secretCode.trim().toUpperCase() === 'ADMIN1234'
-      ? 'admin'
-      : 'user';
+    const role = secretCode?.trim().toUpperCase() === 'ADMIN1234' ? 'admin' : 'user';
 
     const newUser = await User.create({
       username,
@@ -182,24 +180,29 @@ app.get('/profile', authenticateToken, async (req, res) => {
   }
 });
 
-const path = require('path');
 
-// 1) Sirve los archivos estáticos del build de React:
+/* ----------- Static & SPA fallback ----------- */
+
+// Sirve los archivos estáticos del build de React
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 
-// 2) Para cualquier ruta que no sea API, devuelve index.html:
-app.get('*', (req, res) => {
+// Para cualquier ruta no API y no estático, devolver index.html
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
 
+/* ----------- Arranque del Servidor ----------- */
 
-/* ----------- Sincronización de la Base de Datos y Arranque del Servidor ----------- */
+const PORT = process.env.PORT || 3000;
 
-sequelize.sync()
+// Opcional: verificar conexión antes de arrancar
+sequelize.authenticate()
   .then(() => {
-    app.listen(3000, () => console.log('Servidor corriendo en el puerto 3000'));
+    console.log('Conexión a la base de datos establecida.');
+    app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
   })
-  .catch(error => {
-    console.error('Error al sincronizar la base de datos:', error);
+  .catch(err => {
+    console.error('No se pudo conectar a la base de datos:', err);
+    process.exit(1);
   });
