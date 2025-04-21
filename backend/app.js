@@ -6,20 +6,27 @@ const jwt     = require('jsonwebtoken');
 const { sequelize, Task, User } = require('./models');
 
 const app = express();
+// justo después de `const app = express();`
+app.use((req, res, next) => {
+  console.log('👉 Incoming request:', req.method, req.url, 'Origin:', req.headers.origin);
+  next();
+});
 
-// 1) Parsear JSON
-app.use(express.json());
+// comenta o borra el viejo corsOptions
+// app.use(cors(corsOptions));
+// app.options('/*', cors(corsOptions));
 
-// 2) Configuración CORS
-const corsOptions = {
-  origin:         process.env.CORS_ORIGIN,
-  methods:        ['GET','POST','PUT','DELETE','OPTIONS'],
+// nuevo: permite todas las origins (para debug y mientras ajustas)
+app.use(require('cors')({
+  origin: (origin, callback) => {
+    // muestra en logs cada origin recibido
+    console.log('↪️ CORS allowing origin:', origin);
+    callback(null, true);
+  },
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
-};
-app.use(cors(corsOptions));
+}));
 
-// 2b) Preflight usando regex para no pasar por path-to-regexp string parser
-app.options(/.*/, cors(corsOptions));
 
 // 3) Middleware de autenticación
 function authenticateToken(req, res, next) {
