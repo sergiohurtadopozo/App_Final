@@ -183,12 +183,12 @@ app.get('/profile', authenticateToken, async (req, res) => {
 
 /* ----------- Static & SPA fallback ----------- */
 
-// Sirve los archivos estáticos del build de React
-app.use(express.static(path.join(__dirname, '../frontend/build')));
+// Sirve los estáticos desde backend/frontend/build
+app.use(express.static(path.join(__dirname, 'frontend', 'build')));
 
-// Para cualquier ruta no API y no estático, devolver index.html
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+// Solo para rutas no API, devolvemos index.html de ese mismo build
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
 });
 
 
