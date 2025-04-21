@@ -17,7 +17,8 @@ const corsOptions = {
   allowedHeaders: ['Content-Type','Authorization']
 };
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+// CORREGIDO: preflight OPTIONS para **todas** las rutas con slash
+app.options('/*', cors(corsOptions));
 
 // 3) Middleware de autenticación
 function authenticateToken(req, res, next) {
@@ -32,8 +33,6 @@ function authenticateToken(req, res, next) {
 }
 
 // 4) Rutas de gestión de tareas
-
-// Obtener tareas (admin ve todas; usuario solo las suyas)
 app.get('/tasks', authenticateToken, async (req, res) => {
   try {
     const where = req.user.role === 'admin'
@@ -52,24 +51,16 @@ app.get('/tasks', authenticateToken, async (req, res) => {
   }
 });
 
-// Crear tarea
 app.post('/tasks', authenticateToken, async (req, res) => {
   try {
     const { title, description, status, dueDate } = req.body;
-    const task = await Task.create({
-      title,
-      description,
-      status,
-      userId: req.user.id,
-      dueDate
-    });
+    const task = await Task.create({ title, description, status, userId: req.user.id, dueDate });
     res.json(task);
   } catch {
     res.status(500).json({ error: 'Error al crear la tarea.' });
   }
 });
 
-// Actualizar tarea
 app.put('/tasks/:id', authenticateToken, async (req, res) => {
   try {
     const { title, description, status, dueDate } = req.body;
@@ -79,20 +70,13 @@ app.put('/tasks/:id', authenticateToken, async (req, res) => {
       : { id, userId: req.user.id };
     const task = await Task.findOne({ where: filter });
     if (!task) return res.status(404).json({ error: 'Tarea no encontrada.' });
-
-    await task.update({
-      title,
-      description,
-      status,
-      dueDate: dueDate !== undefined ? dueDate : task.dueDate
-    });
+    await task.update({ title, description, status, dueDate: dueDate !== undefined ? dueDate : task.dueDate });
     res.json(task);
   } catch {
     res.status(500).json({ error: 'Error al actualizar la tarea.' });
   }
 });
 
-// Eliminar tarea
 app.delete('/tasks/:id', authenticateToken, async (req, res) => {
   try {
     const id = req.params.id;
@@ -101,7 +85,6 @@ app.delete('/tasks/:id', authenticateToken, async (req, res) => {
       : { id, userId: req.user.id };
     const task = await Task.findOne({ where: filter });
     if (!task) return res.status(404).json({ error: 'Tarea no encontrada.' });
-
     await task.destroy();
     res.json({ message: 'Tarea eliminada.' });
   } catch {
@@ -110,8 +93,6 @@ app.delete('/tasks/:id', authenticateToken, async (req, res) => {
 });
 
 // 5) Rutas de usuario
-
-// Registrar usuario
 app.post('/register', async (req, res) => {
   try {
     const { username, email, password, secretCode } = req.body;
@@ -119,17 +100,14 @@ app.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'El usuario ya existe.' });
     }
     const hashed = await bcrypt.hash(password, 10);
-    const role   = (secretCode?.trim().toUpperCase() === 'ADMIN1234')
-      ? 'admin'
-      : 'user';
-    const user = await User.create({ username, email, password: hashed, role });
+    const role   = secretCode?.trim().toUpperCase() === 'ADMIN1234' ? 'admin' : 'user';
+    const user   = await User.create({ username, email, password: hashed, role });
     res.json({ message: 'Usuario creado.', user: { id: user.id, role: user.role } });
   } catch {
     res.status(500).json({ error: 'Error al registrar el usuario.' });
   }
 });
 
-// Login usuario
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -149,7 +127,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Perfil usuario
 app.get('/profile', authenticateToken, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
