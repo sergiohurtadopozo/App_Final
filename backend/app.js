@@ -1,19 +1,15 @@
 require('dotenv').config();
 const express = require('express');
-const cors    = require('cors');
 const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const { sequelize, Task, User } = require('./models');
 
 const app = express();
-// justo después de app = express() y app.use(express.json()):
-const cors = require('cors');
-app.use(cors());       // ⚠️ PERMITE TODO ORIGIN, TODO MÉTODO, TODO HEADER
-app.options('*', cors());
 
+// 1) Parsear JSON
+app.use(express.json());
 
-
-// 3) Middleware de autenticación
+// 2) Middleware de autenticación
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token      = authHeader && authHeader.split(' ')[1];
@@ -25,11 +21,13 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// 4) Endpoints de tareas
+// 3) Endpoints de tareas
+
+// Obtener tareas (admin ve todas; usuario solo las suyas)
 app.get('/tasks', authenticateToken, async (req, res) => {
   try {
-    const where = req.user.role === 'admin' 
-      ? {} 
+    const where = req.user.role === 'admin'
+      ? {}
       : { userId: req.user.id };
     const includeUser = req.user.role === 'admin';
     const tasks = await Task.findAll({
@@ -44,11 +42,14 @@ app.get('/tasks', authenticateToken, async (req, res) => {
   }
 });
 
+// Crear tarea
 app.post('/tasks', authenticateToken, async (req, res) => {
   try {
     const { title, description, status, dueDate } = req.body;
     const task = await Task.create({
-      title, description, status,
+      title,
+      description,
+      status,
       userId: req.user.id,
       dueDate
     });
@@ -58,6 +59,7 @@ app.post('/tasks', authenticateToken, async (req, res) => {
   }
 });
 
+// Actualizar tarea
 app.put('/tasks/:id', authenticateToken, async (req, res) => {
   try {
     const { title, description, status, dueDate } = req.body;
@@ -68,7 +70,9 @@ app.put('/tasks/:id', authenticateToken, async (req, res) => {
     if (!task) return res.status(404).json({ error: 'Tarea no encontrada.' });
 
     await task.update({
-      title, description, status,
+      title,
+      description,
+      status,
       dueDate: dueDate !== undefined ? dueDate : task.dueDate
     });
     res.json(task);
@@ -77,6 +81,7 @@ app.put('/tasks/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Eliminar tarea
 app.delete('/tasks/:id', authenticateToken, async (req, res) => {
   try {
     const filter = req.user.role === 'admin'
@@ -92,7 +97,9 @@ app.delete('/tasks/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// 5) Endpoints de usuario
+// 4) Endpoints de usuario
+
+// Registrar usuario
 app.post('/register', async (req, res) => {
   try {
     const { username, email, password, secretCode } = req.body;
@@ -100,7 +107,7 @@ app.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'El usuario ya existe.' });
     }
     const hashed = await bcrypt.hash(password, 10);
-    const role = secretCode?.trim().toUpperCase() === 'ADMIN1234'
+    const role   = (secretCode?.trim().toUpperCase() === 'ADMIN1234')
       ? 'admin'
       : 'user';
     const user = await User.create({ username, email, password: hashed, role });
@@ -110,6 +117,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
+// Login usuario
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -129,6 +137,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// Obtener perfil
 app.get('/profile', authenticateToken, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
@@ -140,7 +149,7 @@ app.get('/profile', authenticateToken, async (req, res) => {
   }
 });
 
-// 6) Arranque del servidor
+// 5) Arranque del servidor
 const PORT = process.env.PORT || 3000;
 sequelize.authenticate()
   .then(() => {
