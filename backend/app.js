@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');   
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
@@ -7,6 +8,9 @@ const { sequelize, Task, User } = require('./models');
 
 const app = express();
 app.use(express.json());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN      // solo permite peticiones desde tu front
+}));
 
 /**
  * Middleware para verificar el token JWT.
