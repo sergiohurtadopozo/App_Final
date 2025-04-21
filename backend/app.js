@@ -6,26 +6,11 @@ const jwt     = require('jsonwebtoken');
 const { sequelize, Task, User } = require('./models');
 
 const app = express();
-// justo después de `const app = express();`
-app.use((req, res, next) => {
-  console.log('👉 Incoming request:', req.method, req.url, 'Origin:', req.headers.origin);
-  next();
-});
+// justo después de app = express() y app.use(express.json()):
+const cors = require('cors');
+app.use(cors());       // ⚠️ PERMITE TODO ORIGIN, TODO MÉTODO, TODO HEADER
+app.options('*', cors());
 
-// comenta o borra el viejo corsOptions
-// app.use(cors(corsOptions));
-// app.options('/*', cors(corsOptions));
-
-// nuevo: permite todas las origins (para debug y mientras ajustas)
-app.use(require('cors')({
-  origin: (origin, callback) => {
-    // muestra en logs cada origin recibido
-    console.log('↪️ CORS allowing origin:', origin);
-    callback(null, true);
-  },
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
-}));
 
 
 // 3) Middleware de autenticación
